@@ -16,6 +16,7 @@ Press 'q' to quit.
 import cv2
 import os
 import sys
+import glob
 
 try:
     label_name = sys.argv[1]
@@ -27,6 +28,7 @@ except:
 
 IMG_SAVE_PATH = 'image_data'
 IMG_CLASS_PATH = os.path.join(IMG_SAVE_PATH, label_name)
+last_id = 0
 
 try:
     os.mkdir(IMG_SAVE_PATH)
@@ -37,11 +39,21 @@ try:
 except FileExistsError:
     print("{} directory already exists.".format(IMG_CLASS_PATH))
     print("All images gathered will be saved along with existing items in this folder")
+    list_of_files = glob.glob(os.path.join(IMG_CLASS_PATH, '*'))
+    def comp(file):
+        try :
+            return int(os.path.splitext(file)[0].split('\\')[-1])
+        except ValueError:
+            return 0
+    latest_file = max(list_of_files, key=comp)
+    last_id = comp(latest_file)
 
 cap = cv2.VideoCapture(0)
 
 start = False
 count = 0
+reset_nb = 3
+nb=0
 
 while True:
     ret, frame = cap.read()
@@ -51,17 +63,22 @@ while True:
     if count == num_samples:
         break
 
-    cv2.rectangle(frame, (100, 100), (500, 500), (255, 255, 255), 2)
+    cv2.rectangle(frame, (100, 100), (400, 400), (255, 255, 255), 2)
 
     if start:
-        roi = frame[100:500, 100:500]
-        save_path = os.path.join(IMG_CLASS_PATH, '{}.jpg'.format(count + 1))
-        cv2.imwrite(save_path, roi)
-        count += 1
+        if nb==0 :
+            roi = frame[100:400, 100:400]
+            save_path = os.path.join(IMG_CLASS_PATH, '{}.jpg'.format(last_id + count + 1))
+            cv2.imwrite(save_path, roi)
+            count += 1
+            nb = reset_nb
+        else :
+            nb -= 1
+            
 
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(frame, "Collecting {}".format(count),
-            (5, 50), font, 0.7, (0, 255, 255), 2, cv2.LINE_AA)
+            (50, 30), font, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
     cv2.imshow("Collecting images", frame)
 
     k = cv2.waitKey(10)

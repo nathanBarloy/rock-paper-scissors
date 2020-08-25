@@ -5,6 +5,8 @@ from keras.optimizers import Adam
 from keras.utils import np_utils
 from keras.layers import Activation, Dropout, Convolution2D, GlobalAveragePooling2D
 from keras.models import Sequential
+from keras.preprocessing.image import ImageDataGenerator 
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import os
 
@@ -63,12 +65,25 @@ labels = list(map(mapper, labels))
 
 
 '''
-labels: rock,paper,paper,scissors,rock...
-one hot encoded: [1,0,0], [0,1,0], [0,1,0], [0,0,1], [1,0,0]...
+labels: 0,1,2,3,0,3,2,1...
+one hot encoded: [1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]...
 '''
 
 # one hot encode the labels
 labels = np_utils.to_categorical(labels)
+
+# split the data
+X_train, X_test, y_train, y_test = train_test_split(np.array(data), np.array(labels), test_size=0.1)
+
+# data augmentation
+datagen = ImageDataGenerator(
+    rotation_range=20,
+    zoom_range=0.15,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    horizontal_flip=True)
+
+
 
 # define the model
 model = get_model()
@@ -79,7 +94,13 @@ model.compile(
 )
 
 # start training
-model.fit(np.array(data), np.array(labels), epochs=10)
+epochs=10
+batch=16
+#model.fit(np.array(data), np.array(labels), epochs=epochs)
+model.fit_generator(datagen.flow(X_train, y_train, batch_size=batch), 
+                    validation_data=[X_test, y_test],
+                    steps_per_epoch=len(X_train)//batch,
+                    epochs=epochs)
 
 # save the model for later use
-model.save("rock-paper-scissors-model.h5")
+#model.save("rock-paper-scissors-model.h5")
