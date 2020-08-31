@@ -6,6 +6,7 @@ from keras.utils import np_utils
 from keras.layers import Activation, Dropout, Convolution2D, GlobalAveragePooling2D
 from keras.models import Sequential
 from keras.preprocessing.image import ImageDataGenerator 
+from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import os
@@ -93,13 +94,16 @@ model.compile(
     metrics=['accuracy']
 )
 
+# create checkpoint for training
+checkpoint = ModelCheckpoint("rock-paper-scissors-model.h5", monitor='loss', verbose=1, save_best_only=True, mode='auto', period=1)
+
 # start training
 epochs=10
 batch=16
 model.fit_generator(datagen.flow(X_train, y_train, batch_size=batch), 
                     validation_data=[X_test, y_test],
                     steps_per_epoch=len(X_train)//batch,
-                    epochs=epochs)
+                    epochs=epochs,
+                    callbacks=[checkpoint])
 
-# save the model for later use
-model.save("rock-paper-scissors-model.h5")
+
