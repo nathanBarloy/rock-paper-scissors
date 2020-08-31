@@ -96,11 +96,10 @@ model.compile(
 # start training
 epochs=10
 batch=16
-#model.fit(np.array(data), np.array(labels), epochs=epochs)
 model.fit_generator(datagen.flow(X_train, y_train, batch_size=batch), 
                     validation_data=[X_test, y_test],
                     steps_per_epoch=len(X_train)//batch,
                     epochs=epochs)
 
 # save the model for later use
-#model.save("rock-paper-scissors-model.h5")
+model.save("rock-paper-scissors-model.h5")
