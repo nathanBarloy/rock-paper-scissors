@@ -17,6 +17,7 @@ import cv2
 import os
 import sys
 import glob
+import time
 
 try:
     label_name = sys.argv[1]
@@ -45,45 +46,60 @@ except FileExistsError:
             return int(os.path.splitext(file)[0].split('\\')[-1])
         except ValueError:
             return 0
-    latest_file = max(list_of_files, key=comp)
-    last_id = comp(latest_file)
+    if len(list_of_files)!=0 :
+        latest_file = max(list_of_files, key=comp)
+        last_id = comp(latest_file)
 
 cap = cv2.VideoCapture(0)
 
 start = False
 count = 0
-reset_nb = 3
-nb=0
+waiting_time = 0.8
+target_time = time.time() + waiting_time
+countdown = 2
+abs_interval = (-0.2*waiting_time, 0.1*waiting_time)
+interval = abs_interval
 
 while True:
     ret, frame = cap.read()
     if not ret:
         continue
 
-    if count == num_samples:
+    if count >= num_samples:
         break
-
+    
     cv2.rectangle(frame, (100, 100), (400, 400), (255, 255, 255), 2)
 
+
     if start:
-        if nb==0 :
+        current_time = time.time()
+        if current_time>target_time :
+            target_time += waiting_time
+            countdown-=1
+            if countdown==-1 :
+                countdown=2
+                interval = (abs_interval[0]+target_time+waiting_time, abs_interval[1]+target_time+waiting_time)
+        
+        if current_time>=interval[0] and current_time<=interval[1] :
             roi = frame[100:400, 100:400]
             save_path = os.path.join(IMG_CLASS_PATH, '{}.jpg'.format(last_id + count + 1))
             cv2.imwrite(save_path, roi)
             count += 1
-            nb = reset_nb
-        else :
-            nb -= 1
             
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(frame, "Collecting {}".format(count),
-            (50, 30), font, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
+    cv2.putText(frame, "taken : {}".format(count),
+            (50, 40), font, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
+    cv2.putText(frame, "{}".format(countdown),
+            (400, 60), font, 2, (255, 0, 255), 5, cv2.LINE_AA)
     cv2.imshow("Collecting images", frame)
 
     k = cv2.waitKey(10)
     if k == ord('a'):
         start = not start
+        countdown = 2
+        target_time = time.time() + waiting_time
+        interval = (abs_interval[0]+target_time+waiting_time, abs_interval[1]+target_time+waiting_time)
 
     if k == ord('q'):
         break
