@@ -54,7 +54,8 @@ cap = cv2.VideoCapture(0)
 
 start = False
 count = 0
-waiting_time = 0.8
+waiting_time = 0.5
+waiting_game = 2*waiting_time
 target_time = time.time() + waiting_time
 countdown = 2
 abs_interval = (-0.2*waiting_time, 0.1*waiting_time)
@@ -74,8 +75,12 @@ while True:
     if start:
         current_time = time.time()
         if current_time>target_time :
-            target_time += waiting_time
             countdown-=1
+            if countdown==0 :
+                target_time += waiting_game
+            else :
+                target_time += waiting_time
+            
             if countdown==-1 :
                 countdown=2
                 interval = (abs_interval[0]+target_time+waiting_time, abs_interval[1]+target_time+waiting_time)

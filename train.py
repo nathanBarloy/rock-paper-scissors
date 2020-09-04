@@ -8,7 +8,6 @@ from keras.models import Sequential
 from keras.preprocessing.image import ImageDataGenerator 
 from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
 import os
 
 IMG_SAVE_PATH = 'image_data'
