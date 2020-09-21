@@ -76,12 +76,16 @@ labels = np_utils.to_categorical(labels)
 # split the data
 X_train, X_test, y_train, y_test = train_test_split(np.array(data), np.array(labels), test_size=0.1)
 
+def blur(img) :
+    return cv2.blur(img, (5,5))
+
 # data augmentation
 datagen = ImageDataGenerator(
     rotation_range=20,
     zoom_range=0.15,
     width_shift_range=0.2,
     height_shift_range=0.2,
+    #preprocessing_function=blur,
     horizontal_flip=True)
 
 
